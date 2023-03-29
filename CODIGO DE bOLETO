@@ -1,0 +1,144 @@
+#Primeramente voy a definir una clase que representara un artículo de mi inventario
+#esta clase tendrá atributos como la clave, el nombre y la cantidad disponible en el inventario.
+#También tendrá métodos para incrementar o decrementar la cantidad disponible.
+
+import sys
+import datetime
+
+class Producto:
+    def _init_(self, clave, nombre, cantidad):
+        self.clave = clave
+        self.nombre = nombre
+        self.cantidad = cantidad
+
+    def incrementar_cantidad(self, cantidad):
+        self.cantidad += cantidad
+
+    def decrementar_cantidad(self, cantidad):
+        self.cantidad -= cantidad
+
+# Estoy creando una clase Inventario que contendrá una lsita de productos y métodos para agregar 
+#un nuevo producto y para obtener un producto por su clave.
+
+class Inventario:
+    def _init_(self):
+        self.productos = []
+
+    def agregar_producto(self, producto):
+        self.productos.append(producto)
+
+    def obtener_producto_por_clave(self, clave):
+        for producto in self.productos:
+            if producto.clave == clave:
+                return producto
+            return None
+
+
+#Creando una clase de Compra que representara una compra de un producto en particular.
+#Esta clase tendrá atributos como la cantidad comprada, la clave y el nombre del producto,
+#el precio unitario y el total de la compra.
+
+class Compra:
+    def _init_(self, cantidad, clave, nombre, precio_unitario):
+        self.cantidad = cantidad
+        self.clave = clave
+        self.nombre = nombre
+        self.precio_unitario = precio_unitario
+        self.total = cantidad * precio_unitario
+        self.fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+#Por último voy a crear una clase que se llamara Venta que represente una venta
+#de un producto en particular. Esta clase tendrá atributos similares a la clase de 
+#Compra, pero además tendrá un método para calcular el precio de venta a partir del precio unitario
+#y un porcentaje de ganancia.
+
+class Venta:
+    def _init_(self, cantidad, clave, nombre, precio_unitario, porcentaje_ganancia):
+        self.cantidad = cantidad
+        self.clave = clave
+        self.nombre = nombre
+        self.precio_unitario = precio_unitario
+        self.total = cantidad * self.calcular_precio_venta(precio_unitario, porcentaje_ganancia)
+        self.fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def calcular_precio_venta(self, precio_unitario, porcentaje_ganancia):
+        return precio_unitario * (1 + porcentaje_ganancia / 100)
+
+#Ahora voy a crear una clase Sistema que contenga todas las funcionalidades que describi.
+#Esta clase tendrá atributos como un a instancia de la clase Inventario, una lista de compras y
+#una lista de ventas. También tendrá métodos para agregar un nuevo producto al inventario, realizar 
+#una compra, realizar una venta, mostrar el inventario y mostrar las ventas.
+
+class Sistema:
+    def _init_(self):
+        self.inventario = Inventario()
+        self.compras = []
+        self.ventas = []
+
+    def agregar_producto(self, clave, nombre, cantidad):
+        producto_existente = self.inventario.obtener_producto_por_clave(clave)
+        if producto_existente:
+            producto_existente.incrementar_cantidad(cantidad)
+        else:
+            nuevo_producto = Producto(clave, nombre, cantidad)
+            self.inventario.agregar_producto(nuevo_producto)
+
+    def realizar_compra(self, cantidad, clave, precio_unitario):
+        producto = self.inventario.obtener_producto_por_clave(clave)
+        if producto:
+            compra = Compra(cantidad, clave, producto.nombre, precio_unitario)
+            self.compras.append(compra)
+            producto.incrementar_cantidad(cantidad)
+        else:
+            print("El producto no está en el inventario.")
+
+    def realizar_venta(self, cantidad, clave, precio_unitario, porcentaje_ganancia):
+        producto = self.inventario.obtener_producto_por_clave(clave)
+        if producto and producto.cantidad >= cantidad:
+            venta = Venta(cantidad, clave, producto.nombre, precio_unitario, porcentaje_ganancia)
+            self.ventas.append(venta)
+            producto.decrementar_cantidad(cantidad)
+        else:
+            print("No hay suficientes productos en el inventario.")
+
+    def mostrar_inventario(self):
+        print("Inventario:")
+        print("Clave\tNombre\tCantidad")
+        for producto in self.inventario.productos:
+            print(f"{producto.clave}\t{producto.nombre}\t{producto.cantidad}")
+    
+    def mostrar_ventas(self):
+        print("Ventas:")
+        print("Clave\tNombre\tTotal\tFecha")
+        total_ventas = 0
+        ventas_por_producto = {}
+        for venta in self.ventas:
+            total_ventas += venta.total
+            if venta.clave in ventas_por_producto:
+                ventas_por_producto[venta.clave]["total"] += venta.total
+            else:
+                ventas_por_producto[venta.clave] = {"nombre": venta.nombre, "total": venta.total}
+        for clave, datos_producto in ventas_por_producto.items():
+            print(f"{clave}\t{datos_producto['nombre']}\t{datos_producto['total']}\t")
+            print(f"Total de ventas: {total_ventas}")
+
+#Finalmente, voy a crear una instancia del sistema y a probar algunas de sus funcionalidades.
+sistema = Sistema()
+
+#Aqui agrego productos al inventeario
+sistema.agregar_producto("A1", "Producto 1", 10)
+sistema.agregar_producto("A2", "Producto 2", 5)
+sistema.agregar_producto("A3", "Producto 3", 2)
+
+#Se realizan las compras
+sistema.realizar_compra(5, "A1", 100.0)
+sistema.realizar_compra(3, "A2", 150.0)
+
+#Realizar Ventas
+sistema.realizar_venta(2, "A1", 200.0, 50.0)
+sistema.realizar_venta(1, "A2", 250.0, 30.0)
+
+#Mostrar el inventario y ventas
+sistema.mostrar_inventario()
+sistema.mostrar_ventas()
+    
